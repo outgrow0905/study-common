@@ -43,9 +43,39 @@
 `t1.IS - t1.IS`: `S lock`끼리는 호환이 되니 같은 데이터든 아니든 막을 필요가 없다.  
 
 
+
+#### Record Locks
+`record lock`은 인덱스에 설정하는 `lock`이다.   
+`SELECT c1 FROM t WHERE c1 = 10 FOR UPDATE;` 쿼리를 예로 들면 `c1 = 10`에 해당하는 `row`에 `record lock`이 설정된다.  
+인덱스에 설정한다고 했는데 인덱스가 없는 테이블이면 어떨까?  
+개발자가 직접 생성한 인덱스가 없다 하더라도 `InnoDB`는 `clustered index`를 테이블마다 가지고 있다. `primary key`라고 보아도 무방하다.   
+그러한 테이블이라면 `record lock`은 `(hidden) clustered index`에 설정된다.
+
+
+
+#### Clustered and Secondary Indexes
+모든 `InnoDB` 테이블은 `clustered index`를 가지고 있다. 개발자가 아무런 인덱스를 생성하지 않은 테이블이라 할지라도 말이다.  
+`clustered index`는 `primary key`와 동의어로 보아도 무방하다.  
+`clustered index`는 일반적인 조회나 `DML` 수행시에 최적화를 위해 사용된다. 
+
+`clustered index`의 생성부터 알아보자.  
+
+`clustered index`는 개발자가 테이블 생성시에 `primary key`를 명시한다면 이를 그대로 `clustered index`로 사용한다.  
+`primary key`를 명시하지 않고 `auto-increment`를 명시했다면 해당 컬럼으로 `clustered index`가 생성된다.  
+`primary key`도 없고 `auto-increment`를 설정한 컬럼도 없지만 `unique` 인덱스가 있다면 해당 인덱스로 `clustered index`를 생성한다.   
+정말 아무것도 없다면 `InnoDB`는 `GEN_CLUST_INDEX`라는 `hidden clustered index`를 생성한다.  
+아무것도 없는 테이블은 `InnoDB`가 `6바이트`짜리 `auto-increment` 성격의 `row id` 컬럼을 생성하고 이를 기반으로 `GEN_CLUST_INDEX`를 생성하는 것이다.  
+이 컬럼은 새로운 `row`가 들어올 때마다 `InnoDB`가 자동부여하고 당연히 물리적으로 생성된 순서로 정렬할 수 있다.  
+
+`clustered index`를 제외하고 개발자가 생성한 모든 인덱스를 `secondary index`라 한다.  
+`secondary index`는 개발자가 설정한 컬럼을 포함하고, 해당 인덱스에 `primary key` 컬럼이 없다면 `primary key`도 자동으로 포함하게 된다.  
+`secondary index` 조회시에 `primary key`를 알게되고 이를 사용하여 `clustered index`에서 `row`를 찾는다.
+
+
 #### Reference
 - https://dev.mysql.com/doc/refman/8.0/en/innodb-locking.html
 - https://www.geeksforgeeks.org/multiple-granularity-locking-in-dbms/
 - https://severalnines.com/blog/understanding-lock-granularity-mysql/
 - https://copyprogramming.com/howto/multiple-granularity-locking-in-dbms
 - https://bako94.tistory.com/157
+- https://dev.mysql.com/doc/refman/8.0/en/innodb-index-types.html
