@@ -51,25 +51,60 @@
 개발자가 직접 생성한 인덱스가 없다 하더라도 `InnoDB`는 `clustered index`를 테이블마다 가지고 있다. `primary key`라고 보아도 무방하다.   
 그러한 테이블이라면 `record lock`은 `(hidden) clustered index`에 설정된다.
 
+인덱스를 잡그는 것의 의미를 테스트를 통해 알아보자.  
+그리고 인덱스가 여러개 있는 테이블이면 어떻게 잠그는지도 확인해보자.  
+아래의 테이블 정보로 진행하겠다.  
+
+~~~sql
+CREATE TABLE `tb_user` (
+  `id` int NOT NULL,
+  `emp_no` int DEFAULT NULL,
+  `first_name` varchar(10) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `last_name` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `hire_date` date DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_first_name` (`first_name`)
+);
+~~~
+
+테스트 대상 데이터 조건은 아래와 같다.
+
+~~~sql
+select * from tb_user where first_name = 'Mary' and last_name = 'Peha'; -- count = 1
+select * from tb_user where first_name = 'Mary'; -- count = 33
+~~~
+
+트렌젝션을 켜고 아래의 쿼리를 수행한 뒤 락 상태를 확인해보자.
+
+~~~sql
+-- update
+update tb_user force index(idx_first_name) set hire_date = DATE_FORMAT(now(), '%Y-%m-%d') where first_name = 'Mary' and last_name = 'Peha';
+-- check
+select INDEX_NAME, LOCK_MODE, count(*) from performance_schema.data_locks group by INDEX_NAME, LOCK_MODE;
+~~~
+
+![lock1](img/lock1.png)
+
+`idx_first_name` 인덱스과 `PRIMARY` 인덱스 둘 다 `33`개씩 락이 걸려있는 것을 확인했다.  
+당연히 위의 락이 잡힌 상태에서 다른 쓰레드에서 `first_name`이 `Mary`인 데이터를 `key`로 `update`를 시도해면 대기하게 된다. 
+
+~~~sql
+update tb_user set hire_date = DATE_FORMAT(now(), '%Y-%m-%d') where id = 7; -- 대기
+~~~
+
+인덱스가 여러개인 경우 사용되는 모든 인덱스에 락을 건다.  
+이것의 의미는 인덱스를 적절히 설정하지 않거나 `update` 문에서 `where` 조건을 적절하게 설정하지 않으면 개발자가 예상하는것보다 더 많은 데이터에 락을 걸 수 있음을 의미한다.  
+
+위의 예시에서 인덱스도 있었고 `1`개의 레코드에만 락이 걸리기를 원헀는데 `33`개의 데이터에 락이 걸린것이 억울한가?  
+만약 `idx_first_name` 인덱스조차 없었다면 위의 쿼리는 전체 데이터에 락을 걸게 된다.  
+아래는 실제 결과이다.
+
+![lock2](img/lock2.png)
 
 
-#### Clustered and Secondary Indexes
-모든 `InnoDB` 테이블은 `clustered index`를 가지고 있다. 개발자가 아무런 인덱스를 생성하지 않은 테이블이라 할지라도 말이다.  
-`clustered index`는 `primary key`와 동의어로 보아도 무방하다.  
-`clustered index`는 일반적인 조회나 `DML` 수행시에 최적화를 위해 사용된다. 
 
-`clustered index`의 생성부터 알아보자.  
 
-`clustered index`는 개발자가 테이블 생성시에 `primary key`를 명시한다면 이를 그대로 `clustered index`로 사용한다.  
-`primary key`를 명시하지 않고 `auto-increment`를 명시했다면 해당 컬럼으로 `clustered index`가 생성된다.  
-`primary key`도 없고 `auto-increment`를 설정한 컬럼도 없지만 `unique` 인덱스가 있다면 해당 인덱스로 `clustered index`를 생성한다.   
-정말 아무것도 없다면 `InnoDB`는 `GEN_CLUST_INDEX`라는 `hidden clustered index`를 생성한다.  
-아무것도 없는 테이블은 `InnoDB`가 `6바이트`짜리 `auto-increment` 성격의 `row id` 컬럼을 생성하고 이를 기반으로 `GEN_CLUST_INDEX`를 생성하는 것이다.  
-이 컬럼은 새로운 `row`가 들어올 때마다 `InnoDB`가 자동부여하고 당연히 물리적으로 생성된 순서로 정렬할 수 있다.  
 
-`clustered index`를 제외하고 개발자가 생성한 모든 인덱스를 `secondary index`라 한다.  
-`secondary index`는 개발자가 설정한 컬럼을 포함하고, 해당 인덱스에 `primary key` 컬럼이 없다면 `primary key`도 자동으로 포함하게 된다.  
-`secondary index` 조회시에 `primary key`를 알게되고 이를 사용하여 `clustered index`에서 `row`를 찾는다.
 
 
 #### Reference
@@ -78,4 +113,5 @@
 - https://severalnines.com/blog/understanding-lock-granularity-mysql/
 - https://copyprogramming.com/howto/multiple-granularity-locking-in-dbms
 - https://bako94.tistory.com/157
-- https://dev.mysql.com/doc/refman/8.0/en/innodb-index-types.html
+- https://medium.com/daangn/mysql-gap-lock-%EB%8B%A4%EC%8B%9C%EB%B3%B4%EA%B8%B0-7f47ea3f68bc
+- https://hoing.io/archives/4713
