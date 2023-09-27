@@ -103,8 +103,46 @@ update tb_user set hire_date = DATE_FORMAT(now(), '%Y-%m-%d') where id = 7; -- �
 
 
 
+#### Gap Locks / Next-Key Locks
+`gap lock`은 말 그대로 간격을 잠그는 것이다.  
+인덱스에서 특정 범위를 잠그면서 해당 범위에 새로운 데이터가 `insert` 되는것을 막는다.  
+
+예제로 살펴보자.  
+먼저 아래의 인덱스를 추가하자.
+
+~~~sql
+alter table tb_user add unique index uidx_emp_no_last_name(emp_no, last_name);
+~~~
+
+그리고 아래의 `update`를 수행해보자.
+
+~~~sql
+update tb_test
+   set hire_date=DATE_FORMAT(now(), '%Y-%m-%d')
+ where emp_no=10036 
+   and last_name='Portugali'
+;
+~~~
+
+조건에 부합하는 두개의 인덱스에 `X lock`이 걸리게 된다.  
+(`gap lock`이 발생하지 않았다.)
+
+![lock3](img/lock3.png)
+
+인덱스의 두 컬럼조건 중 하나의 조건만으로 `update` 문을 수행해보자.
+
+~~~sql
+update tb_test
+   set hire_date=DATE_FORMAT(now(), '%Y-%m-%d')
+ where emp_no=10036 
+;
+~~~
+
+![lock4](img/lock4.png)
 
 
+조건에 해당하는 `id = 36`보다 바로 위, 그리고 바로 아래의 범위까지 `insert`를 막게 된다.  
+예를 들어 `id = 36`의 바로 아래가 `id = 30`이고 바로 위가 `id = 39`라면 `31 ~ 38`까지의 범위가 `insert` 되는것을 막게 된다.
 
 
 #### Reference
