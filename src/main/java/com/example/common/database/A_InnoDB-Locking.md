@@ -1,6 +1,6 @@
 #### Intention Locks
 `intention lock`은 테이블에 설정하는 락이다.  
-`intention shared lock(IS)`, `intention exclusive lock(IX)` 두 종료가 있다.    
+`intention shared lock(IS)`, `intention exclusive lock(IX)` 두 종류가 있다.    
 테이블에 설정함과 동시에 하위 레벨인 `row` 단위에도 락을 설정하게 된다.    
 
 `IS lock`는 `row`에 `S lock`을 설정하게 된다.  
@@ -30,7 +30,7 @@
 
 `t1.IX - t2.X`: `t1`에서 특정 `테이블`의 특정 `row`에 `X lock`을 설정하는 작업이 수행중인데, 같은 `테이블`에 `X lock`을 수행할 수는 없을 것이다.  
 `t1.IX - t2.IX`: `t1`에서 특정 `테이블`의 특정 `row`에 `X lock`을 설정하는 작업이 수행중인데, 같은 `row`가 아니라면 `테이블` 단위 `lock` 경합부터 굳이 막을 필요는 없을 것이다. 
-혹시 같은 `row`를 수정하려고 한다면 해당 `row`에 `X lock`을 획득할 때까지 `t2`는 대기해야 한다.
+혹시 같은 `row`를 수정하려고 한다면 해당 `row`에 `X lock`을 획득할 때까지 `t2`는 대기해야 한다.  
 `t1.IX - t2.S`: `t1`에서 특정 `테이블`의 특정 `row`에 `X lock`을 설정하는 작업이 수행중인데, 해당 테이블에 `S lock` (ex. `read only`)를 설정할 수는 없을 것이다.  
 `t1.IX - t2.IS`: `t1`에서 특정 `테이블`의 특정 `row`에 `X lock`을 설정하는 작업이 수행중인데, 같은 `row`가 아니라면 `테이블` 단위 `lock` 경합부터 굳이 막을 필요는 없을 것이다. 
 혹시 같은 `row`에 `S lock`을 설정하려고 한다면 `S lock`획득까지 기다리면 된다.  
