@@ -23,7 +23,7 @@ ALTER TABLE tb_user ADD UNIQUE INDEX uidx_emp_no_last_name(emp_no, last_name);
 ~~~sql
 select * from tb_user where emp_no  >= 10081  for update;
 ~~~
-![index1](img/index1.png)
+![index1](../img/index1.png)
 
 쿼리에 사용된 `uidx_emp_no_last_name` 인덱스에 `X lock`이 걸리는 것은 이해가 된다.  
 `PK`에는 왜 걸리는 것일까?   
@@ -32,9 +32,9 @@ select * from tb_user where emp_no  >= 10081  for update;
 그렇다면 `InnoDB`의 인덱스는 어떻게 생겼는지 알아보자.
 
 - B Tree
-  ![index3](img/index3.png)
+  ![index3](../img/index3.png)
 - InnoDB 인덱스
-  ![index2](img/index2.png)
+  ![index2](../img/index2.png)
 
 첫번째 그림은 일반적인 `B Tree`의 구성이다.  
 두번째 그림은 `InnoDB`의 인덱스 구조이다.  

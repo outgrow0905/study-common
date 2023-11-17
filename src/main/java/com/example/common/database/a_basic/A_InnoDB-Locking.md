@@ -83,7 +83,7 @@ update tb_user force index(idx_first_name) set hire_date = DATE_FORMAT(now(), '%
 select INDEX_NAME, LOCK_MODE, count(*) from performance_schema.data_locks group by INDEX_NAME, LOCK_MODE;
 ~~~
 
-![lock1](img/lock1.png)
+![lock1](../img/lock1.png)
 
 `idx_first_name` 인덱스과 `PRIMARY` 인덱스 둘 다 `33`개씩 락이 걸려있는 것을 확인했다.  
 당연히 위의 락이 잡힌 상태에서 다른 쓰레드에서 `first_name`이 `Mary`인 데이터를 `key`로 `update`를 시도해면 대기하게 된다. 
@@ -99,7 +99,7 @@ update tb_user set hire_date = DATE_FORMAT(now(), '%Y-%m-%d') where id = 7; -- �
 만약 `idx_first_name` 인덱스조차 없었다면 위의 쿼리는 전체 데이터에 락을 걸게 된다.  
 아래는 실제 결과이다.
 
-![lock2](img/lock2.png)
+![lock2](../img/lock2.png)
 
 
 
@@ -127,7 +127,7 @@ update tb_test
 조건에 부합하는 두개의 인덱스에 `X lock`이 걸리게 된다.  
 (`gap lock`이 발생하지 않았다.)
 
-![lock3](img/lock3.png)
+![lock3](../img/lock3.png)
 
 인덱스의 두 컬럼조건 중 하나의 조건만으로 `update` 문을 수행해보자.
 
@@ -138,7 +138,7 @@ update tb_test
 ;
 ~~~
 
-![lock4](img/lock4.png)
+![lock4](../img/lock4.png)
 
 
 조건에 해당하는 `id = 36`보다 바로 위, 그리고 바로 아래의 범위까지 `insert`를 막게 된다.  
