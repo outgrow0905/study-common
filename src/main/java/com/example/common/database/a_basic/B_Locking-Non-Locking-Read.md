@@ -36,5 +36,5 @@ UPDATE t1 SET c2 = 'cba' WHERE c2 = 'abc'; -- several rows updated
 `REPEATABLE READ`조건에서는 최초의 `SELECT` 시점에 생성하고 트렌젝션이 종료될때까지 스냅샷을 다시 바꾸는 일은 없다.  
 `READ COMMITED` 조건에서는 `SELECT` 시점마다 스냅샷을 새로 생성한다. 따라서 `phantom read`가 발생할 수 있다.
 
-#### Reference
+#### References
 - https://dev.mysql.com/doc/refman/8.0/en/innodb-consistent-read.html

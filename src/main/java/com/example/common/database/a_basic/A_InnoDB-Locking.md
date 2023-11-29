@@ -145,7 +145,7 @@ update tb_test
 예를 들어 `id = 36`의 바로 아래가 `id = 30`이고 바로 위가 `id = 39`라면 `31 ~ 38`까지의 범위가 `insert` 되는것을 막게 된다.
 
 
-#### Reference
+#### References
 - https://dev.mysql.com/doc/refman/8.0/en/innodb-locking.html
 - https://www.geeksforgeeks.org/multiple-granularity-locking-in-dbms/
 - https://severalnines.com/blog/understanding-lock-granularity-mysql/
