@@ -31,41 +31,6 @@ where last_name = 'Acton'
 `ix_lastname_firstname` 인덱스를 이용할 것이고,  
 `last_name` 컬럼은 `조회조건`이고 `first_name` 컬럼은 `필터링조건`이다.  
 `first_name`은 `like '%sal'` 조건으로 걸려있기 때문이다.  
-쿼리의 수행은 아래와 같을 것이다.  
-
-`ix_lastname_fi#### Using index condition
-쿼리플랜의 `Extra` 컬럼의 `Using index condition`를 알아보자.  
-이 정보는 `index condition pushdown`가 발생했을 때에 적히는 정보이다.  
-`index condition pushdown`는 또 무엇인가?
-
-예제로 알아보자.
-
-`employees` 테이블에 `last_name, first_name`으로 구성된 인덱스 `ix_lastname_firstname`를 추가해보자.
-
-~~~sql
-alter table employees add index ix_lastname_firstname (last_name, first_name);
-~~~
-
-테스트를 위해 `index_condition_pushdown` 옵션은 꺼둔다.
-
-~~~sql
-set  session optimizer_switch='index_condition_pushdown=off';
-~~~
-
-그리고 아래의 쿼리는 어떻게 동작할지 생각해보자.
-
-~~~sql
-explain
-select *
-from employees
-where last_name = 'Acton'
-  and first_name like '%sal'
-;
-~~~
-
-`ix_lastname_firstname` 인덱스를 이용할 것이고,  
-`last_name` 컬럼은 `조회조건`이고 `first_name` 컬럼은 `필터링조건`이다.  
-`first_name`은 `like '%sal'` 조건으로 걸려있기 때문이다.  
 쿼리의 수행은 아래와 같을 것이다.
 
 `ix_lastname_firstname` 인덱스에서 `last_name = 'Acton'` 조건으로 전부 검색한다.  
